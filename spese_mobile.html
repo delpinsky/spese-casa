@@ -54,7 +54,9 @@
   .header-title{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--header-sub)}
   .header-month{font-size:26px;font-weight:600;color:var(--header-text);line-height:1;margin:2px 0}
   .header-budget{font-size:13px;color:var(--header-sub)}
+  
   .header-right{display:flex;gap:8px;align-items:center;padding-top:4px}
+  .version-tag { font-weight: 300; font-size: 10px; color: var(--header-sub); margin-right: 4px; opacity: 0.8; }
   .icon-btn{background:rgba(0,0,0,0.06);border:none;border-radius:10px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer}
 
   /* --- SYNC BAR --- */
@@ -80,7 +82,7 @@
   .field-label{font-size:12px;color:var(--text3);width:100px;flex-shrink:0}
   .field-input{flex:1;background:var(--bg);border:.5px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:14px;padding:8px;text-align:right;outline:none}
 
-  /* --- FOOTER (Stile Originale Richiesto) --- */
+  /* --- FOOTER --- */
   .footer-container { 
     position:fixed; bottom:0; left:0; right:0; background:var(--surface); 
     border-top:1px solid var(--border); z-index:100;
@@ -92,7 +94,7 @@
   .stat-item { background:var(--bg); padding:12px; border-radius:14px; text-align:center; }
   .stat-label { font-size:10px; color:var(--text3); text-transform:uppercase; margin-bottom:2px; font-weight:600; }
   .stat-val { font-size:16px; font-weight:700; color:var(--text); font-family:var(--mono); }
-  .countdown { font-size:12px; color:var(--orange); font-weight:600; margin-top:2px; display:block; }
+  .countdown { font-size:12px; font-weight:600; margin-top:2px; display:block; font-family:var(--mono); }
 
   .bottom-nav{display:flex; padding:0 15px 15px; gap:8px;}
   .bottom-btn{flex:1;background:var(--surface2);border:none;border-radius:12px;color:var(--text2);padding:12px 5px;display:flex;flex-direction:column;align-items:center;gap:3px}
@@ -124,6 +126,7 @@
       <div class="header-budget">Budget: 1.200 €</div>
     </div>
     <div class="header-right">
+      <span class="version-tag">v1.0</span>
       <button class="icon-btn" onclick="toggleTheme()" id="theme-btn">🌙</button>
       <button class="icon-btn" onclick="changeMonth(-1)">◀</button>
       <button class="icon-btn" onclick="changeMonth(1)">▶</button>
@@ -143,12 +146,12 @@
     <div class="stat-item">
       <div class="stat-label">Spesa Aggregata</div>
       <div class="stat-val" id="total-agg">0,00 €</div>
-      <span class="countdown" id="count-agg">Residuo: 0 €</span>
+      <span class="countdown" id="count-agg">Residuo: 0,00 €</span>
     </div>
     <div class="stat-item">
       <div class="stat-label">Spese Extra</div>
       <div class="stat-val" id="total-extra">0,00 €</div>
-      <span class="countdown" id="count-extra">Extra: 0 €</span>
+      <span class="countdown" id="count-extra">Extra: 0,00 €</span>
     </div>
   </div>
   <div class="bottom-nav">
@@ -252,6 +255,7 @@ function buildCards() {
     card.className = `day-card ${isToday ? 'today' : ''} ${openCards.has(i)?'open':''}`;
     
     const dayTotal = parse(d.super) + parse(d.panif) + parse(d.tigo);
+    const dayDiff = parse(d.budget) - dayTotal;
 
     card.innerHTML = `
       <div class="card-header" onclick="window.toggleCard(${i})">
@@ -263,8 +267,8 @@ function buildCards() {
           <div style="font-size:11px; color:var(--text3); font-weight:600">Budget: ${fmt(parse(d.budget))}</div>
           <div style="font-size:14px; font-weight:700">${dayTotal > 0 ? fmt(dayTotal) : '—'}</div>
         </div>
-        <div class="card-summary-val" style="color:${parse(d.budget)-dayTotal >=0 ? 'var(--green)':'var(--red)'}">
-          ${dayTotal > 0 ? (parse(d.budget)-dayTotal >=0 ? '+':'-') + Math.abs(parse(d.budget)-dayTotal).toFixed(0) : ''}
+        <div class="card-summary-val" style="color:${dayDiff >= 0 ? 'var(--green)':'var(--red)'}">
+          ${dayTotal > 0 ? (dayDiff >= 0 ? '+':'-') + Math.abs(dayDiff).toFixed(2) : ''}
         </div>
       </div>
       <div class="card-body">
@@ -316,9 +320,9 @@ function updateTotals() {
   const residuoExtra = (GLOBAL_BUDGET - tB) - extraTotal;
 
   document.getElementById('total-agg').textContent = fmt(agg);
-  document.getElementById('count-agg').textContent = `Residuo: ${residuoAgg.toFixed(0)} €`;
+  document.getElementById('count-agg').textContent = `Residuo: ${residuoAgg.toFixed(2)} €`;
   document.getElementById('total-extra').textContent = fmt(extraTotal);
-  document.getElementById('count-extra').textContent = `Extra: ${residuoExtra.toFixed(0)} €`;
+  document.getElementById('count-extra').textContent = `Extra: ${residuoExtra.toFixed(2)} €`;
   
   document.getElementById('count-agg').style.color = residuoAgg >= 0 ? 'var(--green)' : 'var(--red)';
   document.getElementById('count-extra').style.color = residuoExtra >= 0 ? 'var(--orange)' : 'var(--red)';
