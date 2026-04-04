@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Spese Casa">
+<meta name="theme-color" content="#d6edba">
+<link rel="manifest" href="manifest.json">
+<title>Spese Casa</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg:#f2f0eb; --surface:#ffffff; --surface2:#e8e6e0; --border:rgba(0,0,0,0.08);
+    --text:#1c1b18; --text2:#5a5955; --text3:#9a9890;
+    --header-bg:#d6edba; --header-text:#1c3a14; --header-sub:#4a7a3a;
+    --accent:#3a7a28; --today-bg:#e8f0fb; --today-accent:#2a6dd4;
+    --green:#2e7d32; --green-bg:#e8f5e9; --red:#c62828; --red-bg:#ffebee;
+    --amber:#e65100; --amber-bg:#fff3e0; --blue:#1565c0; --blue-bg:#e3f2fd;
+    --font:'DM Sans',system-ui,sans-serif; --mono:'DM Mono',monospace;
+  }
+  .dark {
+    --bg:#151412; --surface:#222220; --surface2:#2c2c2a; --border:rgba(255,255,255,0.08);
+    --text:#f0ede8; --text2:#a0a09a; --text3:#606058;
+    --header-bg:#1a2a10; --header-text:#d0e8b8; --header-sub:#7aaa5a;
+    --accent:#7aaa5a; --today-bg:#0d1e3a; --today-accent:#5b8fe8;
+    --green:#81c784; --green-bg:#1b3a1c; --red:#ef9a9a; --red-bg:#3a1212;
+    --amber:#ffb74d; --amber-bg:#2a1a08; --blue:#90caf9; --blue-bg:#0d2040;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;min-height:100vh;padding-bottom:90px;transition:background .25s,color .25s}
+
+  .header{background:var(--header-bg);padding:52px 20px 16px;position:sticky;top:0;z-index:50}
+  .header-top{display:flex;justify-content:space-between;align-items:flex-start}
+  .header-title{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--header-sub)}
+  .header-month{font-size:26px;font-weight:600;color:var(--header-text);line-height:1;margin:2px 0}
+  .header-budget{font-size:13px;color:var(--header-sub)}
+  .header-right{display:flex;gap:8px;align-items:center;padding-top:4px}
+  .icon-btn{background:rgba(0,0,0,0.08);border:none;border-radius:10px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;transition:background .15s,transform .1s}
+  .icon-btn:active{transform:scale(.9)}
+  .dark .icon-btn{background:rgba(255,255,255,0.1)}
+
+  .sync-bar{display:flex;align-items:center;justify-content:center;gap:6px;padding:6px 16px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;transition:background .3s}
+  .sync-bar.synced{background:var(--green-bg);color:var(--green)}
+  .sync-bar.syncing{background:var(--amber-bg);color:var(--amber)}
+  .sync-bar.offline{background:var(--surface2);color:var(--text3)}
+  .sync-bar.error{background:var(--red-bg);color:var(--red)}
+  .sync-dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+  .sync-dot.pulse{animation:pulse 1.2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+  .summary-strip{display:flex;gap:10px;padding:12px 16px;overflow-x:auto;scrollbar-width:none}
+  .summary-strip::-webkit-scrollbar{display:none}
+  .summary-pill{flex-shrink:0;background:var(--surface);border:.5px solid var(--border);border-radius:12px;padding:10px 14px;min-width:128px}
+  .s-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:4px}
+  .s-value{font-family:var(--mono);font-size:15px;font-weight:500;color:var(--text)}
+  .summary-pill.blue{background:var(--blue-bg)} .summary-pill.blue .s-value{color:var(--blue)}
+  .summary-pill.amber{background:var(--amber-bg)} .summary-pill.amber .s-value{color:var(--amber)}
+
+  .month-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);padding:6px 16px}
+  .cards-list{padding:0 12px;display:flex;flex-direction:column;gap:10px}
+
+  .day-card{background:var(--surface);border:.5px solid var(--border);border-radius:16px;overflow:hidden}
+  .day-card.today{border:1.5px solid var(--today-accent);background:var(--today-bg)}
+  .day-card.sunday .day-name,.day-card.sunday .day-num{color:var(--red)!important}
+  .card-header{display:flex;align-items:center;padding:12px 14px 10px;gap:10px;cursor:pointer;user-select:none}
+  .day-badge{width:40px;height:40px;border-radius:10px;background:var(--surface2);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
+  .today .day-badge{background:var(--today-accent)}
+  .day-num{font-size:17px;font-weight:600;line-height:1;color:var(--text)}
+  .today .day-num{color:#fff}
+  .day-name{font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);line-height:1;margin-top:2px}
+  .today .day-name{color:rgba(255,255,255,.75)}
+  .card-summary{flex:1;display:flex;flex-direction:column;gap:4px}
+  .card-budget-row{display:flex;align-items:center;justify-content:space-between}
+  .budget-label{font-size:12px;color:var(--text3)}
+  .budget-val{font-family:var(--mono);font-size:13px;color:var(--text2)}
+  .card-progress{height:4px;background:var(--surface2);border-radius:2px;overflow:hidden}
+  .card-progress-bar{height:100%;border-radius:2px;transition:width .3s;background:var(--accent)}
+  .card-progress-bar.over{background:var(--red)}
+  .card-resto{font-family:var(--mono);font-size:13px;font-weight:500;text-align:right}
+  .card-resto.pos{color:var(--green)} .card-resto.neg{color:var(--red)}
+  .card-chevron{font-size:11px;color:var(--text3);transition:transform .25s;margin-left:4px}
+  .day-card.open .card-chevron{transform:rotate(180deg)}
+  .card-body{display:none;padding:0 14px 14px;flex-direction:column;gap:8px;border-top:.5px solid var(--border)}
+  .day-card.open .card-body{display:flex}
+  .field-row{display:flex;align-items:center;gap:10px}
+  .field-label{font-size:12px;color:var(--text3);width:95px;flex-shrink:0}
+  .field-input{flex:1;background:var(--bg);border:.5px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:14px;padding:8px 10px;text-align:right;outline:none;transition:border-color .15s;-webkit-appearance:none}
+  .field-input:focus{border-color:var(--today-accent);background:var(--surface)}
+  .field-input::placeholder{color:var(--text3);font-size:13px}
+  .field-unit{font-size:13px;color:var(--text3);width:14px;flex-shrink:0}
+  .section-divider{height:.5px;background:var(--border);margin:2px 0}
+  .resto-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0 0}
+  .resto-label{font-size:12px;color:var(--text3)}
+  .resto-val{font-family:var(--mono);font-size:15px;font-weight:600}
+  .resto-val.pos{color:var(--green)} .resto-val.neg{color:var(--red)}
+
+  .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:.5px solid var(--border);display:flex;padding:10px 20px calc(10px + env(safe-area-inset-bottom));gap:8px;z-index:50}
+  .bottom-btn{flex:1;background:var(--surface2);border:none;border-radius:10px;color:var(--text2);font-family:var(--font);font-size:13px;font-weight:500;padding:10px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:background .15s,transform .1s}
+  .bottom-btn:active{transform:scale(.95)}
+  .bottom-btn.primary{background:var(--accent);color:white}
+  .bb-icon{font-size:18px} .bb-label{font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+
+  .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--bg);padding:10px 20px;border-radius:20px;font-size:13px;font-weight:500;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:200;white-space:nowrap}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  #file-upload{display:none}
+</style>
+</head>
+<body id="app">
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-title">Spese mensili</div>
+      <div class="header-month" id="hdr-month">—</div>
+      <div class="header-budget">Budget mensile: 1.200 €</div>
+    </div>
+    <div class="header-right">
+      <button class="icon-btn" onclick="toggleTheme()" id="theme-btn">🌙</button>
+      <button class="icon-btn" onclick="changeMonth(-1)">◀</button>
+      <button class="icon-btn" onclick="changeMonth(1)">▶</button>
+    </div>
+  </div>
+</div>
+
+<div class="sync-bar offline" id="sync-bar">
+  <div class="sync-dot" id="sync-dot"></div>
+  <span id="sync-label">Connessione in corso…</span>
+</div>
+
+<div class="summary-strip">
+  <div class="summary-pill blue"><div class="s-label">Supermercato</div><div class="s-value" id="s-super">—</div></div>
+  <div class="summary-pill" id="pill-saldo"><div class="s-label">Saldo</div><div class="s-value" id="s-saldo">—</div></div>
+  <div class="summary-pill" id="pill-agg"><div class="s-label">Aggregato</div><div class="s-value" id="s-agg">—</div></div>
+  <div class="summary-pill amber"><div class="s-label">Farm+Boll+Extra</div><div class="s-value" id="s-extra">—</div></div>
+</div>
+
+<div class="month-label" id="month-label">—</div>
+<div class="cards-list" id="cards-list"></div>
+
+<div class="bottom-nav">
+  <button class="bottom-btn primary" onclick="forceSave()"><span class="bb-icon">☁️</span><span class="bb-label">Salva</span></button>
+  <button class="bottom-btn" onclick="exportJSON()"><span class="bb-icon">⬇️</span><span class="bb-label">Esporta</span></button>
+  <button class="bottom-btn" onclick="document.getElementById('file-upload').click()"><span class="bb-icon">⬆️</span><span class="bb-label">Carica</span></button>
+</div>
+<input type="file" id="file-upload" accept=".json" onchange="importJSON(event)">
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot, enableIndexedDbPersistence }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDAVqnxJxczuzSlLRlVNkVDT1XpIvreNM0",
+  authDomain: "spese-casa-69d8d.firebaseapp.com",
+  projectId: "spese-casa-69d8d",
+  storageBucket: "spese-casa-69d8d.firebasestorage.app",
+  messagingSenderId: "635191642735",
+  appId: "1:635191642735:web:720d097b574c3b09229b9a"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db    = getFirestore(fbApp);
+enableIndexedDbPersistence(db).catch(() => {});
+
+const MONTHS_IT = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+const DAYS_SHORT = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+const DOC_ID = 'spese-famiglia';
+
+let currentYear  = new Date().getFullYear();
+let currentMonth = new Date().getMonth();
+let appData   = {};
+let isDark    = false;
+let openCards = new Set();
+let saveTimer = null;
+
+const fmt   = v => v.toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' €';
+const parse = s => parseFloat(String(s).replace(',','.')) || 0;
+const getDOW = d => new Date(currentYear, currentMonth, d).getDay();
+
+function getDefaultBudget(dow) {
+  if (dow === 0) return 0;
+  if (dow === 1) return 30;
+  if (dow === 6) return 50;
+  return 40;
+}
+
+function ensureMonthData(y, m) {
+  const key = `${y}-${m}`;
+  if (!appData[key]) {
+    const days = new Date(y, m+1, 0).getDate();
+    appData[key] = Array.from({length:days}, (_,i) => ({
+      day: i+1,
+      budget: getDefaultBudget(new Date(y, m, i+1).getDay()),
+      super:'', panif:'', tigo:'', farm:'', boll:'', extra:''
+    }));
+  }
+  return appData[key];
+}
+
+// ── FIREBASE ──────────────────────────────────────────────────────────────────
+function setSyncStatus(status, text) {
+  const bar = document.getElementById('sync-bar');
+  const dot = document.getElementById('sync-dot');
+  bar.className = `sync-bar ${status}`;
+  dot.className = `sync-dot${status === 'syncing' ? ' pulse' : ''}`;
+  document.getElementById('sync-label').textContent = text;
+}
+
+async function loadFromFirebase() {
+  setSyncStatus('syncing', 'Caricamento dati…');
+  try {
+    const snap = await getDoc(doc(db, 'spese', DOC_ID));
+    if (snap.exists()) appData = snap.data().appData || {};
+    setSyncStatus('synced', 'Sincronizzato');
+    // Ascolta modifiche in tempo reale da altri dispositivi
+    onSnapshot(doc(db, 'spese', DOC_ID), snap => {
+      if (snap.exists() && !snap.metadata.hasPendingWrites) {
+        const remote = snap.data().appData || {};
+        Object.keys(remote).forEach(k => { if (!appData[k]) appData[k] = remote[k]; });
+        setSyncStatus('synced', 'Sincronizzato');
+        updateSummary();
+      }
+    }, () => setSyncStatus('offline', 'Offline — modifiche salvate localmente'));
+  } catch(e) {
+    setSyncStatus('error', 'Errore — uso dati locali');
+    const local = localStorage.getItem('speseMensiliData');
+    if (local) appData = JSON.parse(local);
+  }
+  buildCards();
+  autoOpenToday();
+}
+
+async function saveToFirebase() {
+  setSyncStatus('syncing', 'Salvataggio…');
+  try {
+    await setDoc(doc(db, 'spese', DOC_ID), { appData, updatedAt: new Date().toISOString() });
+    localStorage.setItem('speseMensiliData', JSON.stringify(appData));
+    setSyncStatus('synced', 'Sincronizzato');
+  } catch(e) {
+    localStorage.setItem('speseMensiliData', JSON.stringify(appData));
+    setSyncStatus('offline', 'Offline — salvato in locale');
+  }
+}
+
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveToFirebase, 1500);
+}
+
+window.forceSave = () => { clearTimeout(saveTimer); saveToFirebase().then(() => showToast('☁️ Salvato!')); };
+
+// ── BUILD ─────────────────────────────────────────────────────────────────────
+function buildCards() {
+  const data   = ensureMonthData(currentYear, currentMonth);
+  const today  = new Date();
+  const isCurr = today.getMonth() === currentMonth && today.getFullYear() === currentYear;
+
+  document.getElementById('hdr-month').textContent   = `${MONTHS_IT[currentMonth]} ${currentYear}`;
+  document.getElementById('month-label').textContent = `${MONTHS_IT[currentMonth]} ${currentYear}`;
+
+  const list = document.getElementById('cards-list');
+  list.innerHTML = '';
+
+  data.forEach((d, i) => {
+    const dow     = getDOW(d.day);
+    const isToday = isCurr && today.getDate() === d.day;
+    const budget  = parse(d.budget);
+    const sv      = parse(d.super);
+    const speso   = sv + parse(d.panif) + parse(d.tigo);
+    const resto   = (d.super !== '' && budget > 0) ? budget - sv : null;
+    const pct     = budget > 0 ? Math.min((speso/budget)*100, 100) : 0;
+    const isOver  = budget > 0 && speso > budget;
+
+    const card = document.createElement('div');
+    card.className = 'day-card' + (isToday ? ' today' : '') + (dow===0 ? ' sunday' : '') + (openCards.has(i) ? ' open' : '');
+
+    const restoHTML = resto !== null
+      ? `<div class="card-resto ${resto>=0?'pos':'neg'}">${resto>=0?'+':''}${fmt(resto)}</div>`
+      : `<div class="card-resto" style="color:var(--text3);font-size:12px;">${dow===0?'Chiuso':'—'}</div>`;
+
+    card.innerHTML = `
+      <div class="card-header" onclick="toggleCard(${i})">
+        <div class="day-badge">
+          <div class="day-num">${d.day}</div>
+          <div class="day-name">${DAYS_SHORT[dow]}</div>
+        </div>
+        <div class="card-summary">
+          <div class="card-budget-row">
+            <span class="budget-label">Budget</span>
+            <span class="budget-val">${budget>0?fmt(budget):'—'}</span>
+          </div>
+          <div class="card-progress">
+            <div class="card-progress-bar ${isOver?'over':''}" style="width:${pct}%"></div>
+          </div>
+        </div>
+        ${restoHTML}
+        <span class="card-chevron">▼</span>
+      </div>
+      <div class="card-body">
+        <div style="padding-top:6px"></div>
+        ${fld(i,'budget','Budget',d.budget)}
+        <div class="section-divider"></div>
+        ${fld(i,'super','Supermercato',d.super)}
+        ${fld(i,'panif','Panificio',d.panif)}
+        ${fld(i,'tigo','Tigotà',d.tigo)}
+        <div class="section-divider"></div>
+        ${fld(i,'farm','Farmacia',d.farm)}
+        ${fld(i,'boll','Bollette',d.boll)}
+        ${fld(i,'extra','Extra',d.extra)}
+        <div class="resto-row">
+          <span class="resto-label">Saldo giornaliero</span>
+          <span class="resto-val ${resto!==null?(resto>=0?'pos':'neg'):''}" id="rv-${i}">
+            ${resto!==null?(resto>=0?'+':'')+fmt(resto):'—'}
+          </span>
+        </div>
+      </div>`;
+
+    list.appendChild(card);
+    if (openCards.has(i)) {
+      card.querySelector('.card-body').style.display = 'flex';
+    }
+  });
+  updateSummary();
+}
+
+function fld(i, col, label, val) {
+  const v = (val !== '' && val !== undefined) ? val : '';
+  return `<div class="field-row">
+    <span class="field-label">${label}</span>
+    <input class="field-input" type="number" inputmode="decimal" step="0.01" min="0"
+      value="${v}" placeholder="0,00" oninput="updateField(${i},'${col}',this.value)">
+    <span class="field-unit">€</span>
+  </div>`;
+}
+
+window.toggleCard = function(i) {
+  if (openCards.has(i)) openCards.delete(i); else openCards.add(i);
+  const cards = document.querySelectorAll('.day-card');
+  if (!cards[i]) return;
+  cards[i].classList.toggle('open', openCards.has(i));
+  cards[i].querySelector('.card-body').style.display = openCards.has(i) ? 'flex' : 'none';
+};
+
+window.updateField = function(idx, col, val) {
+  const key  = `${currentYear}-${currentMonth}`;
+  appData[key][idx][col] = val;
+  const d      = appData[key][idx];
+  const budget = parse(d.budget);
+  const sv     = parse(d.super);
+  const resto  = (d.super !== '' && budget > 0) ? budget - sv : null;
+  const speso  = sv + parse(d.panif) + parse(d.tigo);
+  const pct    = budget > 0 ? Math.min((speso/budget)*100,100) : 0;
+  const isOver = budget > 0 && speso > budget;
+
+  const rv = document.getElementById(`rv-${idx}`);
+  if (rv) { rv.className=`resto-val ${resto!==null?(resto>=0?'pos':'neg'):''}`; rv.textContent=resto!==null?(resto>=0?'+':'')+fmt(resto):'—'; }
+  const cards = document.querySelectorAll('.day-card');
+  if (cards[idx]) {
+    const bar = cards[idx].querySelector('.card-progress-bar');
+    if (bar) { bar.style.width=pct+'%'; bar.className='card-progress-bar'+(isOver?' over':''); }
+    const cr = cards[idx].querySelector('.card-resto');
+    if (cr && resto!==null) { cr.className=`card-resto ${resto>=0?'pos':'neg'}`; cr.textContent=(resto>=0?'+':'')+fmt(resto); }
+  }
+  updateSummary();
+  scheduleSave();
+};
+
+function updateSummary() {
+  const data = appData[`${currentYear}-${currentMonth}`] || [];
+  let tB=0,tS=0,tR=0,tP=0,tT=0,tF=0,tBo=0,tE=0;
+  data.forEach(d => {
+    const b=parse(d.budget); tB+=b;
+    if (d.super!==''&&d.super!==undefined) { tS+=parse(d.super); tR+=b-parse(d.super); }
+    tP+=parse(d.panif); tT+=parse(d.tigo);
+    tF+=parse(d.farm); tBo+=parse(d.boll); tE+=parse(d.extra);
+  });
+  const agg=tS+tP+tT, extra=tF+tBo+tE;
+  document.getElementById('s-super').textContent = fmt(tS);
+  document.getElementById('s-extra').textContent = fmt(extra);
+  const sEl=document.getElementById('s-saldo');
+  sEl.textContent=(tR>=0?'+':'')+fmt(tR); sEl.style.color=tR>=0?'var(--green)':'var(--red)';
+  document.getElementById('pill-saldo').style.background=tR>=0?'var(--green-bg)':'var(--red-bg)';
+  const aggEl=document.getElementById('s-agg');
+  aggEl.textContent=fmt(agg); aggEl.style.color=agg<=tB?'var(--green)':'var(--red)';
+  document.getElementById('pill-agg').style.background=agg<=tB?'var(--green-bg)':'var(--red-bg)';
+}
+
+window.changeMonth = function(d) {
+  currentMonth+=d;
+  if (currentMonth>11){currentMonth=0;currentYear++;}
+  else if (currentMonth<0){currentMonth=11;currentYear--;}
+  openCards.clear(); buildCards();
+};
+
+window.toggleTheme = function() {
+  isDark=!isDark;
+  document.getElementById('app').classList.toggle('dark',isDark);
+  document.getElementById('theme-btn').textContent=isDark?'☀️':'🌙';
+};
+
+window.exportJSON = function() {
+  const blob=new Blob([JSON.stringify(appData,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=`Spese_Casa_${currentYear}.json`; a.click();
+  URL.revokeObjectURL(url);
+};
+
+window.importJSON = function(e) {
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try { appData=JSON.parse(ev.target.result); openCards.clear(); buildCards(); saveToFirebase().then(()=>showToast('✅ Caricato e sincronizzato!')); }
+    catch { showToast('❌ File non valido'); }
+  };
+  reader.readAsText(e.target.files[0]);
+};
+
+function showToast(msg) {
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+function autoOpenToday() {
+  const idx = new Date().getDate()-1;
+  if (new Date().getMonth()!==currentMonth) return;
+  openCards.add(idx);
+  setTimeout(()=>{
+    const cards=document.querySelectorAll('.day-card');
+    if (cards[idx]) {
+      cards[idx].classList.add('open');
+      cards[idx].querySelector('.card-body').style.display='flex';
+      cards[idx].scrollIntoView({behavior:'smooth',block:'center'});
+    }
+  }, 200);
+}
+
+loadFromFirebase();
+</script>
+</body>
+</html>
