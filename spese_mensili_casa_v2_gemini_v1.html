@@ -149,9 +149,42 @@
 
   .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: center; }
   .modal { background: var(--surface); padding: 25px; border-radius: 15px; width: 340px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+  
+  /* --- STILE POPUP LOGIN --- */
+#login-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+  background: var(--bg); z-index: 10000; 
+  display: flex; align-items: center; justify-content: center;
+}
+.login-card {
+  background: var(--surface); padding: 40px; border-radius: 24px; 
+  width: 100%; max-width: 380px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); 
+  text-align: center; border: 1px solid var(--border);
+}
+.login-card input {
+  width: 100%; padding: 12px; margin: 8px 0 16px; border-radius: 8px; 
+  border: 1px solid var(--input-border); font-size: 16px; outline: none;
+  background: var(--input-bg); color: var(--text);
+}
+.login-btn {
+  width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: none;
+  background: var(--header-text-main); color: white; font-weight: 600; 
+  cursor: pointer; font-size: 16px;
+}
 </style>
 </head>
 <body id="app">
+
+<div id="login-overlay">
+  <div class="login-card">
+    <div style="font-size: 40px; margin-bottom: 10px;">🏠</div>
+    <h2 style="margin-bottom:20px;">Spese Casa</h2>
+    <input type="email" id="login-email" placeholder="Email">
+    <input type="password" id="login-pass" placeholder="Password">
+    <button class="login-btn" onclick="window.handleLogin()">Accedi</button>
+    <p id="login-err" style="color:var(--red-text); font-size:12px; margin-top:15px; display:none;"></p>
+  </div>
+</div>
 
   <div class="app-header">
     <div class="app-header-top">
@@ -245,6 +278,33 @@
   </div>
 
 <script type="module">
+
+window.handleLogin = async () => {
+  const emailVal = document.getElementById('login-email').value.trim(); // .trim() pulisce gli spazi extra
+  const passVal = document.getElementById('login-pass').value;
+  const errDiv = document.getElementById('login-err');
+
+  try {
+    await signInWithEmailAndPassword(auth, emailVal, passVal);
+    document.getElementById('login-overlay').style.display = 'none';
+  } catch (e) {
+    // Se vuoi vedere il motivo tecnico esatto, premi F12 e guarda la Console
+    console.error("Errore Firebase:", e.code); 
+    errDiv.textContent = "Credenziali non riconosciute. Riprova.";
+    errDiv.style.display = 'block';
+  }
+};
+
+// Questo serve a far sparire il pop-up se sei già loggato
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    document.getElementById('login-overlay').style.display = 'none';
+    loadFromFirebase(); 
+  } else {
+    document.getElementById('login-overlay').style.display = 'flex';
+  }
+});
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc, onSnapshot, enableIndexedDbPersistence }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
