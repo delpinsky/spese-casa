@@ -352,13 +352,16 @@ function inputRow(idx, col, label, val, noBudget=true) {
       <button class="plus-popover-add" onclick="window._addMob(${idx},'${col}')">Aggiungi</button>
     </div>` : '';
 
+  // Placeholder invisibile per pareggiare la larghezza con le righe che hanno il +
+  const spacer = !noBudget ? `<span style="width:28px;flex-shrink:0;display:inline-block"></span>` : '';
+
   return `
     <div class="field-row">
       <div class="field-label">${label}</div>
       <input id="mob-inp-${idx}-${col}" type="number" step="0.01" class="field-input" value="${val}"
         oninput="window._ud(${idx},'${col}',this.value)">
       <span class="field-eur">€</span>
-      ${plusSection}
+      ${plusSection}${spacer}
     </div>
   `;
 }
