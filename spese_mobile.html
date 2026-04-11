@@ -80,8 +80,8 @@
   .open .card-body{display:flex}
   .field-row{display:flex;align-items:center;gap:8px;position:relative}
   .field-label{font-size:12px;color:var(--text3);width:95px;flex-shrink:0}
-  /* Input più corto per fare spazio al + */
-  .field-input{width:100px;flex-shrink:0;background:var(--bg);border:.5px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:14px;padding:8px;text-align:right;outline:none;-moz-appearance:textfield}
+  /* Input si allunga fino al + che resta allineato a destra */
+  .field-input{flex:1;min-width:0;background:var(--bg);border:.5px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:14px;padding:8px;text-align:right;outline:none;-moz-appearance:textfield}
   .field-input::-webkit-inner-spin-button,.field-input::-webkit-outer-spin-button{-webkit-appearance:none}
   .field-eur{font-size:12px;color:var(--text3);width:12px;flex-shrink:0}
 
